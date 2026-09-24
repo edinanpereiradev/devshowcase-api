@@ -14,6 +14,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+package com.devshowcase.api.controllers;
+
+import com.devshowcase.api.dtos.FeedbackRequestDTO;
+import com.devshowcase.api.dtos.FeedbackResponseDTO;
+import com.devshowcase.api.dtos.ProjectRequestDTO;
+import com.devshowcase.api.dtos.ProjectResponseDTO;
+import com.devshowcase.api.services.ProjectService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
 
@@ -21,6 +37,13 @@ public class ProjectController {
 
     public ProjectController(ProjectService projectService) {
         this.projectService = projectService;
+    }
+
+    // POST /api/projects -> ENDPOINT QUE FALTAVA
+    @PostMapping
+    public ResponseEntity<ProjectResponseDTO> create(@Valid @RequestBody ProjectRequestDTO dto) {
+        ProjectResponseDTO responseDto = projectService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     // GET /api/projects?technology=java&page=0&size=10

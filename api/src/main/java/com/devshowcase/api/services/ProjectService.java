@@ -2,12 +2,17 @@ package com.devshowcase.api.services;
 
 import com.devshowcase.api.dtos.FeedbackRequestDTO;
 import com.devshowcase.api.dtos.FeedbackResponseDTO;
+import com.devshowcase.api.dtos.ProjectRequestDTO;
 import com.devshowcase.api.dtos.ProjectResponseDTO;
 import com.devshowcase.api.exceptions.ResourceNotFoundException;
 import com.devshowcase.api.models.Feedback;
+import com.devshowcase.api.models.Profile;
 import com.devshowcase.api.models.Project;
+import com.devshowcase.api.models.Technology;
 import com.devshowcase.api.repositories.FeedbackRepository;
+import com.devshowcase.api.repositories.ProfileRepository;
 import com.devshowcase.api.repositories.ProjectRepository;
+import com.devshowcase.api.repositories.TechnologyRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,10 +23,44 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final FeedbackRepository feedbackRepository;
+    private final ProfileRepository profileRepository;
+    private final TechnologyRepository technologyRepository;
 
-    public ProjectService(ProjectRepository projectRepository, FeedbackRepository feedbackRepository) {
+    public ProjectService(ProjectRepository projectRepository,
+                          FeedbackRepository feedbackRepository,
+                          ProfileRepository profileRepository,
+                          TechnologyRepository technologyRepository) {
         this.projectRepository = projectRepository;
         this.feedbackRepository = feedbackRepository;
+        this.profileRepository = profileRepository;
+        this.technologyRepository = technologyRepository;
+    }
+
+    @Transactional
+    public ProjectResponseDTO create(ProjectRequestDTO dto) {
+        Project project = new Project();
+        project.setTitle(dto.title());
+        project.setDescription(dto.description());
+        project.setRepositoryUrl(dto.repositoryUrl());
+
+        // Busca e vincula o perfil do autor
+        if (dto.profileId() != null) {
+            Profile profile = profileRepository.findById(dto.profileId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Perfil não encontrado para o ID: " + dto.profileId()));
+            project.setProfile(profile);
+        }
+
+        // Vincula as tecnologias (se informadas no DTO)
+        if (dto.technologyIds() != null && !dto.technologyIds().isEmpty()) {
+            for (Long techId : dto.technologyIds()) {
+                Technology tech = technologyRepository.findById(techId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Tecnologia não encontrada para o ID: " + techId));
+                project.getTechnologies().add(tech);
+            }
+        }
+
+        project = projectRepository.save(project);
+        return new ProjectResponseDTO(project);
     }
 
     @Transactional(readOnly = true)
