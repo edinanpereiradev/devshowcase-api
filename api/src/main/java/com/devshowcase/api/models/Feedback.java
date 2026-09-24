@@ -1,5 +1,6 @@
 package com.devshowcase.api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,11 +18,12 @@ public class Feedback {
     private Integer rating;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_id", nullable = true) // Alterado para profile_id
+    @JoinColumn(name = "profile_id", nullable = true)
     private Profile profile;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false) // Declarado o relacionamento com Project
+    @JoinColumn(name = "project_id", nullable = false)
+    @JsonIgnore
     private Project project;
 
     public Feedback() {}
@@ -40,18 +42,4 @@ public class Feedback {
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
-
-    import com.fasterxml.jackson.annotation.JsonIgnore; // Import necessário
-
-    @Entity
-    public class Feedback {
-
-        // ... outros atributos ...
-
-        @ManyToOne
-        @JoinColumn(name = "project_id")
-        @JsonIgnore // <-- ADICIONE ESTA LINHA
-        private Project project;
-
-        // ... getters e setters ...
-    }
+}
