@@ -40,4 +40,18 @@ public class Feedback {
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
-}
+
+    import com.fasterxml.jackson.annotation.JsonIgnore; // Import necessário
+
+    @Entity
+    public class Feedback {
+
+        // ... outros atributos ...
+
+        @ManyToOne
+        @JoinColumn(name = "project_id")
+        @JsonIgnore // <-- ADICIONE ESTA LINHA
+        private Project project;
+
+        // ... getters e setters ...
+    }
