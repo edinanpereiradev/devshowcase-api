@@ -10,11 +10,18 @@ public class Feedback {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String comment;
 
-    @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
+    @Column(nullable = false)
+    private Integer rating;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", nullable = true) // Alterado para profile_id
+    private Profile profile;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false) // Declarado o relacionamento com Project
     private Project project;
 
     public Feedback() {}
@@ -24,6 +31,12 @@ public class Feedback {
 
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+
+    public Integer getRating() { return rating; }
+    public void setRating(Integer rating) { this.rating = rating; }
+
+    public Profile getProfile() { return profile; }
+    public void setProfile(Profile profile) { this.profile = profile; }
 
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }

@@ -1,62 +1,50 @@
 package com.devshowcase.api.controllers;
 
+import com.devshowcase.api.dtos.FeedbackRequestDTO;
+import com.devshowcase.api.dtos.FeedbackResponseDTO;
 import com.devshowcase.api.dtos.ProjectRequestDTO;
 import com.devshowcase.api.dtos.ProjectResponseDTO;
-import com.devshowcase.api.models.Profile;
-import com.devshowcase.api.models.Project;
-import com.devshowcase.api.models.Technology;
-import com.devshowcase.api.repositories.ProfileRepository;
-import com.devshowcase.api.repositories.ProjectRepository;
-import com.devshowcase.api.repositories.TechnologyRepository;
+import com.devshowcase.api.services.ProjectService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashSet;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
 
-    private final ProjectRepository projectRepository;
-    private final ProfileRepository profileRepository;
-    private final TechnologyRepository technologyRepository;
+    private final ProjectService projectService;
 
-    public ProjectController(ProjectRepository projectRepository,
-                             ProfileRepository profileRepository,
-                             TechnologyRepository technologyRepository) {
-        this.projectRepository = projectRepository;
-        this.profileRepository = profileRepository;
-        this.technologyRepository = technologyRepository;
+    public ProjectController(ProjectService projectService) {
+        this.projectService = projectService;
     }
 
-    @PostMapping
-    public ResponseEntity<ProjectResponseDTO> create(@Valid @RequestBody ProjectRequestDTO dto) {
-        Profile profile = profileRepository.findById(dto.profileId())
-                .orElseThrow(() -> new RuntimeException("Perfil nao encontrado"));
-
-        Project project = new Project();
-        project.setTitle(dto.title());
-        project.setDescription(dto.description());
-        project.setRepositoryUrl(dto.repositoryUrl());
-        project.setProfile(profile);
-
-        if (dto.technologyIds() != null && !dto.technologyIds().isEmpty()) {
-            List<Technology> technologies = technologyRepository.findAllById(dto.technologyIds());
-            project.setTechnologies(new HashSet<>(technologies));
-        }
-
-        project = projectRepository.save(project);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ProjectResponseDTO(project));
-    }
-
+    // GET /api/projects?technology=java&page=0&size=10
     @GetMapping
-    public ResponseEntity<List<ProjectResponseDTO>> findAll() {
-        List<ProjectResponseDTO> list = projectRepository.findAll().stream()
-                .map(ProjectResponseDTO::new)
-                .toList();
+    public ResponseEntity<Page<ProjectResponseDTO>> findAll(
+            @RequestParam(required = false) String technology,
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<ProjectResponseDTO> list = projectService.findAllPaged(technology, pageable);
         return ResponseEntity.ok(list);
+    }
+
+    // PUT /api/projects/{id}/upvote
+    @PutMapping("/{id}/upvote")
+    public ResponseEntity<ProjectResponseDTO> upvote(@PathVariable Long id) {
+        ProjectResponseDTO dto = projectService.incrementUpvote(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    // POST /api/projects/{id}/feedbacks
+    @PostMapping("/{id}/feedbacks")
+    public ResponseEntity<FeedbackResponseDTO> addFeedback(
+            @PathVariable Long id,
+            @Valid @RequestBody FeedbackRequestDTO dto) {
+        FeedbackResponseDTO feedbackDto = projectService.addFeedback(id, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(feedbackDto);
     }
 }

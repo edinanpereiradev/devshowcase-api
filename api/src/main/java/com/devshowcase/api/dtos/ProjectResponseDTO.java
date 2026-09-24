@@ -9,6 +9,8 @@ public record ProjectResponseDTO(
         String title,
         String description,
         String repositoryUrl,
+        Integer upvotes,
+        Double averageRating,
         Long profileId,
         Set<TechnologyResponseDTO> technologies
 ) {
@@ -18,6 +20,8 @@ public record ProjectResponseDTO(
                 entity.getTitle(),
                 entity.getDescription(),
                 entity.getRepositoryUrl(),
+                entity.getUpvotes(),
+                entity.getAverageRating(),
                 entity.getProfile().getId(),
                 entity.getTechnologies().stream().map(TechnologyResponseDTO::new).collect(Collectors.toSet())
         );
